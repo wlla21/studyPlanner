@@ -8,9 +8,23 @@ const Login = () => {
   const passwordInputRef = useRef(null);
   const navigate = useNavigate();
 
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    const user = existingUsers.find(
+      (user) => user.email === email && user.password === password,
+    );
+
+    if (user) {
+      navigate("/");
+    } else {
+      alert("Invalid email or password.");
+    }
+  };
+
   return (
     <div>
-      <form>
+      <form onSubmit={handleLogin}>
         <div>
           <input
             type="email"

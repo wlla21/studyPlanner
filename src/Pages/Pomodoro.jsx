@@ -14,6 +14,9 @@ const Pomodoro = () => {
         >
           {({ remainingTime }) => remainingTime}
         </CountdownCircleTimer>
+        <button>Start</button>
+        <button>Pause</button>
+        <button>Reset</button>
       </div>
     </div>
   );
