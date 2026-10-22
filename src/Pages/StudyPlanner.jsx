@@ -10,12 +10,13 @@ const StudyPlanner = () => {
   const noteInputRef = useRef(null);
   const startTimeInputRef = useRef(null);
   const endTimeInputRef = useRef(null);
-  const existingNotes = JSON.parse(localStorage.getItem("notes") || "[]");
+  const existingNotes = JSON.parse(
+    localStorage.getItem(date.toDateString()) || "[]",
+  );
   const handleSignUp = (e) => {
     e.preventDefault();
 
     const newNote = {
-      date,
       text: note,
       startTime,
       endTime,
@@ -23,7 +24,7 @@ const StudyPlanner = () => {
 
     existingNotes.push(newNote);
 
-    localStorage.setItem("notes", JSON.stringify(existingNotes));
+    localStorage.setItem(date.toDateString(), JSON.stringify(existingNotes));
 
     setNote("");
     setStartTime("");
@@ -33,11 +34,12 @@ const StudyPlanner = () => {
   return (
     <div>
       <h1>Study Planner</h1>
-      <div className="flex flex-wrap gap-2 px-4"></div>
+      <div className="flex gap-2 px-4"></div>
       <div className="my-2">
         <Calendar onChange={setDate} value={date} />
       </div>
       <div>
+        <h1>{date.toDateString()}</h1>
         <form>
           <div className="flex space-x-4">
             <div>
@@ -81,7 +83,7 @@ const StudyPlanner = () => {
         </form>
 
         <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-          <table className="w-full text-sm text-left rtl:text-right text-body">
+          <table className="text-sm text-left rtl:text-right text-body">
             <thead className="bg-neutral-secondary-soft border-b border-default">
               <tr>
                 <th scope="col" className="px-6 py-3 font-medium">
