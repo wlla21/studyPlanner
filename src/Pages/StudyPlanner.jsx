@@ -31,66 +31,101 @@ const StudyPlanner = () => {
   };
 
   return (
-    <div className="px-4">
+    <div>
       <h1>Study Planner</h1>
-      <div>
+      <div className="flex flex-wrap gap-2 px-4"></div>
+      <div className="my-2">
         <Calendar onChange={setDate} value={date} />
       </div>
-      <form>
-        <div className="flex space-x-4">
-          <div>
-            <input
-              type="time"
-              ref={startTimeInputRef}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="rounded-lg border border-gray-300 p-2"
-            />
-            <label htmlFor="time" className="ml-2">
-              Start Time
-            </label>
+      <div>
+        <form>
+          <div className="flex space-x-4">
+            <div>
+              <input
+                type="time"
+                ref={startTimeInputRef}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="rounded-lg border border-gray-300 p-2"
+              />
+              <label htmlFor="time" className="ml-2">
+                Start Time
+              </label>
+            </div>
+            <div>
+              <input
+                type="time"
+                ref={endTimeInputRef}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="rounded-lg border border-gray-300 p-2"
+              />
+              <label htmlFor="time" className="ml-2">
+                End Time
+              </label>
+            </div>
           </div>
-          <div>
+          <div className="my-4">
             <input
-              type="time"
-              ref={endTimeInputRef}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="rounded-lg border border-gray-300 p-2"
+              type="text"
+              ref={noteInputRef}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Enter your study task"
+              className="border border-gray-300 rounded-md p-2 mb-4 w-64 mr-2"
             />
-            <label htmlFor="time" className="ml-2">
-              End Time
-            </label>
+            <button
+              onClick={handleSignUp}
+              className="text-white bg-[#3b5998] hover:bg-[#3b5998]/90 focus:ring-4 focus:outline-none focus:ring-[#3b5998]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55"
+            >
+              Add Task
+            </button>
           </div>
+        </form>
+
+        <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+          <table className="w-full text-sm text-left rtl:text-right text-body">
+            <thead className="bg-neutral-secondary-soft border-b border-default">
+              <tr>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Study Task
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Date
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Start Time
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  End Time
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {existingNotes.map((note, index) => (
+                <tr
+                  className="odd:bg-neutral-primary even:bg-neutral-secondary-soft border-b border-default"
+                  key={index}
+                >
+                  <td className="px-6 py-4">{note.text}</td>
+                  <td className="px-6 py-4">
+                    {new Date(note.date).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">{note.startTime}</td>
+                  <td className="px-6 py-4">
+                    <a
+                      href="#"
+                      className="font-medium text-fg-brand hover:underline"
+                    >
+                      Edit
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div>
-          <input
-            type="text"
-            ref={noteInputRef}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Enter your study task"
-            className="border border-gray-300 rounded-md p-2 mb-4 w-64"
-          />
-          <button
-            onClick={handleSignUp}
-            className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600"
-          >
-            Add Task
-          </button>
-        </div>
-      </form>
-      <table>
-        <tr>
-          <th>Study Task</th>
-          <th>Date</th>
-          <th>Start Time</th>
-        </tr>
-        {existingNotes.map((note, index) => (
-          <tr key={index}>
-            <td>{note.text}</td>
-            <td>{new Date(note.date).toLocaleDateString()}</td>
-            <td>{note.startTime}</td>
-          </tr>
-        ))}
-      </table>
+      </div>
     </div>
   );
 };

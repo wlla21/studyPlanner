@@ -4,9 +4,9 @@ import { Outlet, Link } from "react-router-dom";
 const Home = () => {
   return (
     <div>
-      <nav className="bg-gray-800 p-4 flex justify-between items-center">
+      <nav className="p-4 flex justify-between items-center">
         <h1>Study Planner</h1>
-        <div className="flex">
+        <div className="flex gap-4">
           <Link to="/signup" className="no-underline">
             Sign Up
           </Link>
@@ -18,7 +18,7 @@ const Home = () => {
       <div className="flex">
         <SideBar />
 
-        <main className="min-w-0 flex-1 p-4">
+        <main className="min-w-0 flex-1 px-4 py-2">
           <Outlet />
         </main>
       </div>
