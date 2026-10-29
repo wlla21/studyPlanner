@@ -1,83 +1,130 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const emailInputRef = useRef(null);
-  const passwordInputRef = useRef(null);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
+
+    const newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required.";
+    }
+
+    if (!password.trim()) {
+      newErrors.password = "Password is required.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+
     const user = existingUsers.find(
-      (user) => user.email === email && user.password === password,
+      (user) => user.email === email.trim() && user.password === password,
     );
 
     if (user) {
+      setErrors({});
       navigate("/");
     } else {
-      alert("Invalid email or password.");
+      setErrors({
+        form: "Invalid email or password.",
+      });
     }
   };
 
   return (
-    <div>
-      <form class="max-w-sm mx-auto" onSubmit={handleLogin}>
-        <div class="mb-5">
-          <label
-            for="email"
-            class="block mb-2.5 text-sm font-medium text-heading"
-          >
+    <main className="auth-page">
+      <form className="auth-card" onSubmit={handleLogin} noValidate>
+        <h1>Welcome back</h1>
+        <p className="auth-card-intro">
+          Sign in to pick up where you left off.
+        </p>
+        <div className="mb-5">
+          <label htmlFor="email" className="block mb-2 text-sm font-medium">
             Your email
           </label>
+
           <input
             type="email"
             id="email"
-            class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
-            placeholder="name@flowbite.com"
+            placeholder="name@example.com"
+            className="border rounded-lg block w-full p-2.5"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            ref={emailInputRef}
-            required
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrors((prev) => ({
+                ...prev,
+                email: "",
+                form: "",
+              }));
+            }}
           />
+
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
-        <div class="mb-5">
-          <label
-            for="password"
-            class="block mb-2.5 text-sm font-medium text-heading"
-          >
+
+        <div className="mb-5">
+          <label htmlFor="password" className="block mb-2 text-sm font-medium">
             Your password
           </label>
+
           <input
             type="password"
             id="password"
-            placeholder="password"
-            class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
+            placeholder="Password"
+            className="border rounded-lg block w-full p-2.5"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            ref={passwordInputRef}
-            required
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors((prev) => ({
+                ...prev,
+                password: "",
+                form: "",
+              }));
+            }}
           />
-        </div>
-        <div className="flex justify-between">
-          <a>
-            <label className="text-slate-500 text-sm">Forgot Password?</label>
-          </a>
 
-          <p className="text-slate-500 text-sm">
-            Don't have an account? <span>Sign Up</span>
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
+        </div>
+
+        {errors.form && (
+          <p className="text-red-500 text-sm mb-3">{errors.form}</p>
+        )}
+
+        <div className="flex justify-between text-sm mb-4">
+          <Link to="/forgot-password" className="text-slate-500">
+            Forgot Password?
+          </Link>
+
+          <p>
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-blue-600 hover:underline">
+              Sign Up
+            </Link>
           </p>
         </div>
+
         <button
           type="submit"
-          class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none my-2"
+          className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700"
         >
-          LogIn
+          Log In
         </button>
       </form>
-    </div>
+    </main>
   );
 };
 

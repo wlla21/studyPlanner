@@ -5,6 +5,7 @@ import StudyPlanner from "./Pages/StudyPlanner";
 import Pomodoro from "./Pages/Pomodoro";
 import Dashboard from "./Pages/Dashboard";
 import Note from "./Pages/Note";
+import DailyPlanner from "./Pages/DailyPlanner";
 import { Routes, Route } from "react-router-dom";
 
 const App = () => {
@@ -16,6 +17,7 @@ const App = () => {
           <Route path="study-planner" element={<StudyPlanner />} />
           <Route path="pomodoro" element={<Pomodoro />} />
           <Route path="note" element={<Note />} />
+          <Route path="daily-planner" element={<DailyPlanner />} />
         </Route>
 
         <Route path="/signup" element={<SignUp />} />

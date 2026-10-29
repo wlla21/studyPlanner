@@ -14,12 +14,21 @@ const SideBar = () => {
         </li>
         <li>
           <Link
+            to="/daily-planner"
+            className="block rounded-lg p-3 no-underline hover:bg-gray-200"
+          >
+            Daily Planner
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/study-planner"
             className="block rounded-lg p-3 no-underline hover:bg-gray-200"
           >
             Study Planner
           </Link>
         </li>
+
         <li>
           <Link
             to="/pomodoro"

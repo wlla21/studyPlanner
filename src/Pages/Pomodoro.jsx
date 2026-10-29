@@ -1,71 +1,161 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 
 const Pomodoro = () => {
-  const [durationTime, setdurationTime] = useState(25);
+  const [durationTime, setDurationTime] = useState(25);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [timerKey, setTimerKey] = useState(0);
+  const [mode, setMode] = useState("Study");
+
+  const [completedSessions, setCompletedSessions] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("pomodoro-completed-sessions") || "[]",
+      );
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      "pomodoro-completed-sessions",
+      JSON.stringify(completedSessions),
+    );
+  }, [completedSessions]);
+
+  // Switch between Study and Break manually
+  const changeMode = (newMode) => {
+    setMode(newMode);
+    setDurationTime(newMode === "Study" ? 25 : 5);
+    setIsPlaying(false);
+    setTimerKey((prev) => prev + 1);
+  };
+
+  // Automatically switch modes when the timer finishes
+  const handleComplete = () => {
+    if (mode === "Study") {
+      const session = {
+        type: "Study",
+        minutes: 25,
+        date: new Date().toLocaleDateString(),
+        completedAt: new Date().toISOString(),
+      };
+
+      setCompletedSessions((previous) => [...previous, session]);
+    }
+
+    const nextMode = mode === "Study" ? "Break" : "Study";
+
+    setMode(nextMode);
+    setDurationTime(nextMode === "Study" ? 25 : 5);
+    setTimerKey((previous) => previous + 1);
+
+    return { shouldRepeat: false };
+  };
+
+  // Reset the current mode
+  const handleReset = () => {
+    setIsPlaying(false);
+    setTimerKey((prev) => prev + 1);
+  };
+
   return (
-    <div>
-      <h1>Pomodoro</h1>
-      <div className="flex flex-col items-center">
-        <div className="flex gap-4 my-3">
+    <div className="mx-auto max-w-3xl space-y-6 p-2 sm:p-4">
+      <header className="text-center">
+        <p className="dashboard-eyebrow">A little focus, a little rest</p>
+        <h1 className="text-3xl font-semibold">Pomodoro timer</h1>
+        <p className="mt-2 text-sm text-gray-500">
+          Find your rhythm, one gentle session at a time.
+        </p>
+      </header>
+
+      <section className="mx-auto flex max-w-xl flex-col items-center rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-10">
+        <div className="mb-7 inline-flex rounded-full bg-gray-100 p-1.5">
           <button
-            onClick={() => setdurationTime(25)}
-            className="inline-flex items-center text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            onClick={() => changeMode("Study")}
+            aria-pressed={mode === "Study"}
+            className={`rounded-full px-5 py-2 text-sm font-semibold ${
+              mode === "Study"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
           >
             Study
           </button>
           <button
-            onClick={() => setdurationTime(5)}
-            className="inline-flex items-center text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            onClick={() => changeMode("Break")}
+            aria-pressed={mode === "Break"}
+            className={`rounded-full px-5 py-2 text-sm font-semibold ${
+              mode === "Break"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
           >
             Break
           </button>
         </div>
+
         <CountdownCircleTimer
+          key={timerKey}
           isPlaying={isPlaying}
           duration={durationTime * 60}
-          colors={["#004777", "#F7B801", "#A30000"]}
-          onComplete={() => {
-            setIsPlaying(false);
-            return { shouldRepeat: false };
-          }}
+          colors={["#78927a", "#b89b6a", "#ad6d63"]}
+          colorsTime={[
+            durationTime * 60,
+            Math.round((durationTime * 60) / 2),
+            0,
+          ]}
+          onComplete={handleComplete}
         >
           {({ remainingTime }) => {
             const minutes = Math.floor(remainingTime / 60);
             const seconds = remainingTime % 60;
 
             return (
-              <div>
-                <h2>
-                  {String(minutes).padStart(2, "0")}:
-                  {String(seconds).padStart(2, "0")}
-                </h2>
+              <div className="font-serif text-4xl font-semibold tracking-tight text-gray-800">
+                {String(minutes).padStart(2, "0")}:
+                {String(seconds).padStart(2, "0")}
               </div>
             );
           }}
         </CountdownCircleTimer>
-        <div className="flex gap-4 my-4">
+
+        <h2 className="mt-6 text-lg font-semibold">{mode} time</h2>
+
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => setIsPlaying(true)}
-            className="inline-flex items-center text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            disabled={isPlaying}
+            className="rounded-full bg-blue-600 px-6 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Start
           </button>
           <button
             onClick={() => setIsPlaying(false)}
-            className="inline-flex items-center text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            disabled={!isPlaying}
+            className="rounded-full border border-gray-300 bg-white px-6 py-2.5 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Pause
           </button>
           <button
-            onClick={() => setIsPlaying(false)}
-            className="inline-flex items-center text-body bg-neutral-primary-soft border border-default hover:bg-neutral-secondary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary-soft shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            onClick={handleReset}
+            className="rounded-full border border-gray-300 bg-white px-6 py-2.5 font-semibold text-gray-700 hover:bg-gray-50"
           >
             Reset
           </button>
         </div>
-      </div>
+      </section>
+
+      <section className="mx-auto max-w-xl rounded-2xl border border-gray-200 bg-gray-50 p-4 text-center">
+        <p className="text-sm font-medium text-gray-700">
+          {completedSessions.length} completed study{" "}
+          {completedSessions.length === 1 ? "session" : "sessions"}
+        </p>
+        <p className="mt-1 text-xs text-gray-500">
+          Your progress is saved on this device.
+        </p>
+      </section>
     </div>
   );
 };
