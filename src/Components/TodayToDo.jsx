@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { ArrowRight, CheckCircle2, Circle, ListChecks } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Circle,
+  Clock3,
+  ListChecks,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const getTodayKey = () => {
@@ -44,7 +50,13 @@ const TodayToDo = () => {
       <header className="today-card-header">
         <div>
           <h2 id="today-heading">Today’s plan</h2>
-          <p className="dashboard-section-caption">Your study blocks at a glance</p>
+          <p className="dashboard-section-caption">
+            {sortedTasks.length === 0
+              ? "A little space for what you want to get done"
+              : `${sortedTasks.length} ${
+                  sortedTasks.length === 1 ? "study block" : "study blocks"
+                } planned for today`}
+          </p>
         </div>
         <span className="today-date-label">{today}</span>
       </header>
@@ -67,19 +79,24 @@ const TodayToDo = () => {
         <div className="today-task-list">
           {sortedTasks.map((task) => (
             <div className="today-task" key={task.id}>
-              <span className="today-task-time">{task.startTime}</span>
+              <span className="today-task-time">
+                <Clock3 size={14} aria-hidden="true" />
+                {task.startTime} <span aria-hidden="true">–</span>{" "}
+                {task.endTime}
+              </span>
               <span className="today-task-name">{task.text}</span>
               <span
                 className={`today-task-status${task.done ? " done" : ""}`}
+                aria-label={task.done ? "Completed" : "Planned"}
               >
                 {task.done ? (
                   <>
-                    <CheckCircle2 className="mr-1 inline" size={13} />
+                    <CheckCircle2 size={14} aria-hidden="true" />
                     Done
                   </>
                 ) : (
                   <>
-                    <Circle className="mr-1 inline" size={13} />
+                    <Circle size={14} aria-hidden="true" />
                     Planned
                   </>
                 )}

@@ -4,8 +4,8 @@ import { FileManager } from "@cubone/react-file-manager";
 import { FilePlus2, FolderPlus, RefreshCw, Upload } from "lucide-react";
 import "@cubone/react-file-manager/dist/style.css";
 
-const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
-const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
+const DRIVE_API = import.meta.env.VITE_DRIVE_API;
+const DRIVE_UPLOAD_API = import.meta.env.VITE_DRIVE_UPLOAD_API;
 const FOLDER_MIME = "application/vnd.google-apps.folder";
 const GOOGLE_DOC_MIME = "application/vnd.google-apps.document";
 const FILE_FIELDS = "id,name,mimeType,modifiedTime,size,parents,webViewLink";
