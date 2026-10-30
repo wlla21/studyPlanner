@@ -29,7 +29,9 @@ async function driveRequest(accessToken, url, options = {}) {
       // Keep the response body when Google does not return JSON.
     }
 
-    throw new Error(detail || `Google Drive request failed (${response.status}).`);
+    throw new Error(
+      detail || `Google Drive request failed (${response.status}).`,
+    );
   }
 
   return response;
@@ -38,9 +40,7 @@ async function driveRequest(accessToken, url, options = {}) {
 function isEditableTextFile(file) {
   return (
     file.mimeType?.startsWith("text/") ||
-    /\.(txt|md|csv|json|html|css|js|jsx|ts|tsx|xml|yaml|yml)$/i.test(
-      file.name,
-    )
+    /\.(txt|md|csv|json|html|css|js|jsx|ts|tsx|xml|yaml|yml)$/i.test(file.name)
   );
 }
 
@@ -52,7 +52,9 @@ export default function Note() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("Connect Google Drive to manage your notes and files.");
+  const [message, setMessage] = useState(
+    "Connect Google Drive to manage your notes and files.",
+  );
   const currentPath = useRef("");
   const currentFolderId = useRef("");
   const fileInput = useRef(null);
@@ -116,9 +118,7 @@ export default function Note() {
       const mappedFiles = allFiles.map((file) => {
         const parent = filesById.get(file.parents?.[0]);
         const parentPath =
-          parent?.mimeType === FOLDER_MIME
-            ? getFolderPath(parent)
-            : "";
+          parent?.mimeType === FOLDER_MIME ? getFolderPath(parent) : "";
 
         return {
           ...file,
@@ -146,7 +146,9 @@ export default function Note() {
           filesByPath.current.get(currentPath.current)?.id || root.id;
       }
       setFiles(mappedFiles);
-      setMessage("Google Drive is connected. Open a folder to browse its contents.");
+      setMessage(
+        "Google Drive is connected. Open a folder to browse its contents.",
+      );
     } catch (error) {
       setMessage(`Could not load Google Drive files: ${error.message}`);
     } finally {
@@ -161,7 +163,9 @@ export default function Note() {
       await loadFiles(response.access_token);
     },
     onError: () => {
-      setMessage("Google sign-in failed. Check your OAuth consent and client settings.");
+      setMessage(
+        "Google sign-in failed. Check your OAuth consent and client settings.",
+      );
     },
   });
 
@@ -214,7 +218,9 @@ export default function Note() {
       const created = await response.json();
       setNote({ id: created.id, name: created.name, content: "" });
       await loadFiles();
-      setMessage(`Created "${created.name}". Write your note below and save it.`);
+      setMessage(
+        `Created "${created.name}". Write your note below and save it.`,
+      );
     } catch (error) {
       setMessage(`Could not create note: ${error.message}`);
     }
@@ -278,11 +284,16 @@ export default function Note() {
     }
 
     const driveFile = file;
-    if (driveFile.mimeType === GOOGLE_DOC_MIME || !isEditableTextFile(driveFile)) {
+    if (
+      driveFile.mimeType === GOOGLE_DOC_MIME ||
+      !isEditableTextFile(driveFile)
+    ) {
       if (driveFile.webViewLink) {
         window.open(driveFile.webViewLink, "_blank", "noopener,noreferrer");
       } else {
-        setMessage("This file opens in Google Drive and cannot be edited in the text editor.");
+        setMessage(
+          "This file opens in Google Drive and cannot be edited in the text editor.",
+        );
       }
       return;
     }
@@ -518,6 +529,7 @@ export default function Note() {
                 copy: false,
                 move: false,
               }}
+              className="[&_*]:text-xs"
             />
           </div>
 

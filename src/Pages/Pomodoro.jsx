@@ -1,64 +1,19 @@
-import { useState, useEffect } from "react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import { usePomodoro } from "../Components/usePomodoro";
 
 const Pomodoro = () => {
-  const [durationTime, setDurationTime] = useState(25);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [timerKey, setTimerKey] = useState(0);
-  const [mode, setMode] = useState("Study");
-
-  const [completedSessions, setCompletedSessions] = useState(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem("pomodoro-completed-sessions") || "[]",
-      );
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem(
-      "pomodoro-completed-sessions",
-      JSON.stringify(completedSessions),
-    );
-  }, [completedSessions]);
-
-  // Switch between Study and Break manually
-  const changeMode = (newMode) => {
-    setMode(newMode);
-    setDurationTime(newMode === "Study" ? 25 : 5);
-    setIsPlaying(false);
-    setTimerKey((prev) => prev + 1);
-  };
-
-  // Automatically switch modes when the timer finishes
-  const handleComplete = () => {
-    if (mode === "Study") {
-      const session = {
-        type: "Study",
-        minutes: 25,
-        date: new Date().toLocaleDateString(),
-        completedAt: new Date().toISOString(),
-      };
-
-      setCompletedSessions((previous) => [...previous, session]);
-    }
-
-    const nextMode = mode === "Study" ? "Break" : "Study";
-
-    setMode(nextMode);
-    setDurationTime(nextMode === "Study" ? 25 : 5);
-    setTimerKey((previous) => previous + 1);
-
-    return { shouldRepeat: false };
-  };
-
-  // Reset the current mode
-  const handleReset = () => {
-    setIsPlaying(false);
-    setTimerKey((prev) => prev + 1);
-  };
+  const {
+    mode,
+    durationMinutes,
+    remainingSeconds,
+    isPlaying,
+    timerKey,
+    completedSessions,
+    start,
+    pause,
+    reset,
+    changeMode,
+  } = usePomodoro();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-2 sm:p-4">
@@ -99,14 +54,14 @@ const Pomodoro = () => {
         <CountdownCircleTimer
           key={timerKey}
           isPlaying={isPlaying}
-          duration={durationTime * 60}
+          duration={durationMinutes * 60}
+          initialRemainingTime={remainingSeconds}
           colors={["#78927a", "#b89b6a", "#ad6d63"]}
           colorsTime={[
-            durationTime * 60,
-            Math.round((durationTime * 60) / 2),
+            durationMinutes * 60,
+            Math.round((durationMinutes * 60) / 2),
             0,
           ]}
-          onComplete={handleComplete}
         >
           {({ remainingTime }) => {
             const minutes = Math.floor(remainingTime / 60);
@@ -125,21 +80,21 @@ const Pomodoro = () => {
 
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <button
-            onClick={() => setIsPlaying(true)}
+            onClick={start}
             disabled={isPlaying}
             className="rounded-full bg-blue-600 px-6 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Start
           </button>
           <button
-            onClick={() => setIsPlaying(false)}
+            onClick={pause}
             disabled={!isPlaying}
             className="rounded-full border border-gray-300 bg-white px-6 py-2.5 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Pause
           </button>
           <button
-            onClick={handleReset}
+            onClick={reset}
             className="rounded-full border border-gray-300 bg-white px-6 py-2.5 font-semibold text-gray-700 hover:bg-gray-50"
           >
             Reset
