@@ -1,11 +1,7 @@
-import {
-  BookOpen,
-  CalendarDays,
-  Clock3,
-  NotebookPen,
-} from "lucide-react";
+import { BookOpen, CalendarDays, Clock3, NotebookPen } from "lucide-react";
 import { Link } from "react-router-dom";
 import TodayToDo from "../Components/TodayToDo";
+import WeeklyStudyCard from "../Components/WeeklyStudyCard";
 
 const quickLinks = [
   {
@@ -50,6 +46,11 @@ const Dashboard = () => {
           A calm place to plan your studies, care for yourself, and celebrate
           the little things you get done.
         </p>
+      </section>
+      <section>
+        <div>
+          <WeeklyStudyCard />
+        </div>
       </section>
 
       <section aria-labelledby="shortcuts-heading">

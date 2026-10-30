@@ -307,7 +307,7 @@ const StudyPlanner = () => {
                 setNote(e.target.value);
                 setErrors((prev) => ({ ...prev, note: "" }));
               }}
-              placeholder="e.g. Algorithms practice"
+              placeholder="e.g. Task"
               aria-invalid={Boolean(errors.note)}
               className={`w-full rounded-lg border px-3 py-2 outline-none focus:ring-2 ${
                 errors.note

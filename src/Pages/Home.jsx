@@ -1,14 +1,13 @@
 import {
   BookOpen,
   BookOpenCheck,
-  CalendarDays,
   Clock3,
   LayoutDashboard,
   NotebookPen,
   SunMedium,
 } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { CURRENT_USER_KEY } from "../auth";
 
 const navigation = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
@@ -19,13 +18,12 @@ const navigation = [
 ];
 
 const Home = () => {
-  const [today] = useState(() =>
-    new Intl.DateTimeFormat("en", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    }).format(new Date()),
-  );
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem(CURRENT_USER_KEY);
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="app-shell">
@@ -43,12 +41,13 @@ const Home = () => {
         </Link>
 
         <div className="app-header-right">
-          <Link to="/login" className="app-auth-link">
-            Log in
-          </Link>
-          <Link to="/signup" className="app-auth-link app-auth-link-primary">
-            Sign up
-          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="app-auth-link"
+          >
+            Log out
+          </button>
         </div>
       </header>
 

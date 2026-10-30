@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { CURRENT_USER_KEY } from "../auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -25,18 +26,26 @@ const Login = () => {
       return;
     }
 
-    const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    try {
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = existingUsers.find(
+        (user) => user.email === email.trim() && user.password === password,
+      );
 
-    const user = existingUsers.find(
-      (user) => user.email === email.trim() && user.password === password,
-    );
+      if (!user) {
+        setErrors({ form: "Invalid email or password." });
+        return;
+      }
 
-    if (user) {
+      localStorage.setItem(CURRENT_USER_KEY, user.email);
       setErrors({});
-      navigate("/");
-    } else {
+      navigate("/", { replace: true });
+    } catch (error) {
       setErrors({
-        form: "Invalid email or password.",
+        form:
+          error instanceof Error
+            ? `Could not sign in: ${error.message}`
+            : "Could not sign in. Please try again.",
       });
     }
   };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+const API_KEY = import.meta.env.VITE_USDA_API_KEY;
 const STORAGE_KEY = "study-brain-daily-planner";
 
 const getToday = () => {
@@ -30,8 +31,9 @@ const DailyPlanner = () => {
   const [allDays, setAllDays] = useState(getSavedData);
   const [date, setDate] = useState(getToday());
 
-  const [foodName, setFoodName] = useState("");
-  const [foodCalories, setFoodCalories] = useState("");
+  const [foodSearch, setFoodSearch] = useState("");
+  const [foodResults, setFoodResults] = useState([]);
+  const [foodLoading, setFoodLoading] = useState(false);
   const [foodError, setFoodError] = useState("");
 
   const [waterAmount, setWaterAmount] = useState("250");
@@ -62,8 +64,8 @@ const DailyPlanner = () => {
     setBedtime(day.sleep?.bedtime || "22:30");
     setWakeTime(day.sleep?.wakeTime || "07:00");
 
-    setFoodName("");
-    setFoodCalories("");
+    setFoodSearch("");
+    setFoodResults([]);
     setFoodError("");
     setTaskName("");
     setStartTime("");
@@ -85,20 +87,83 @@ const DailyPlanner = () => {
   };
 
   // Food calorie counter
-  const addFood = (e) => {
+  // Food calorie counter using USDA FoodData Central
+
+  const searchFoods = async (e) => {
     e.preventDefault();
 
-    if (!foodName.trim()) {
+    if (!foodSearch.trim()) {
       setFoodError("Please enter a food name.");
+      setFoodResults([]);
       return;
     }
 
-    if (
-      foodCalories.trim() === "" ||
-      !Number.isFinite(Number(foodCalories)) ||
-      Number(foodCalories) < 0
-    ) {
-      setFoodError("Enter a valid calorie estimate.");
+    if (!API_KEY) {
+      setFoodError("USDA API key is missing. Check your .env file.");
+      return;
+    }
+
+    setFoodLoading(true);
+    setFoodError("");
+    setFoodResults([]);
+
+    try {
+      const response = await fetch(
+        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(
+          foodSearch.trim(),
+        )}&api_key=${API_KEY}&pageSize=8`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to retrieve food data.");
+      }
+
+      const data = await response.json();
+
+      if (!data.foods || data.foods.length === 0) {
+        setFoodError("No matching foods found. Try another search.");
+        return;
+      }
+
+      setFoodResults(data.foods);
+    } catch (error) {
+      setFoodError(
+        error.message || "Something went wrong while searching for food.",
+      );
+    } finally {
+      setFoodLoading(false);
+    }
+  };
+
+  // Find the energy value in a USDA food result
+  const getFoodCalories = (food) => {
+    const energy = food.foodNutrients?.find(
+      (nutrient) =>
+        nutrient.nutrientId === 1008 ||
+        nutrient.nutrientName?.toLowerCase() === "energy",
+    );
+
+    if (!energy || !Number.isFinite(Number(energy.value))) {
+      return null;
+    }
+
+    // USDA energy values may use different units.
+    // Convert kJ to kcal when the returned unit is kJ.
+    if (energy.unitName?.toLowerCase() === "kj") {
+      return Number(energy.value) / 4.184;
+    }
+
+    return Number(energy.value);
+  };
+
+  // Add a selected food to the daily log
+  const addFood = (food) => {
+    const calories = getFoodCalories(food);
+
+    if (calories === null) {
+      setFoodError(
+        "Calorie information is unavailable for this food. Try another result.",
+      );
       return;
     }
 
@@ -107,23 +172,30 @@ const DailyPlanner = () => {
         ...foods,
         {
           id: crypto.randomUUID(),
-          name: foodName.trim(),
-          calories: Number(foodCalories),
+          fdcId: food.fdcId,
+          name: food.description,
+          calories: Number(calories.toFixed(1)),
         },
       ],
     });
 
-    setFoodName("");
-    setFoodCalories("");
+    setFoodSearch("");
+    setFoodResults([]);
     setFoodError("");
   };
 
+  // Delete a food entry
   const deleteFood = (id) => {
-    updateDay({ foods: foods.filter((food) => food.id !== id) });
+    updateDay({
+      foods: foods.filter((food) => food.id !== id),
+    });
   };
 
-  const totalCalories = foods.reduce((total, food) => total + food.calories, 0);
-
+  // Total calories logged for the selected day
+  const totalCalories = foods.reduce(
+    (total, food) => total + Number(food.calories || 0),
+    0,
+  );
   // Water intake counter
   const addWater = (amount) => {
     if (!Number.isFinite(amount) || amount <= 0) return;
@@ -305,75 +377,137 @@ const DailyPlanner = () => {
       </section>
 
       {/* Food tracker */}
+      {/* Food & Calories */}
       <section className={cardStyle}>
-        <h2 className="text-xl font-bold">Food & Calories</h2>
-        <p className="mb-4 mt-1 text-sm text-gray-500">
-          Enter a food and its estimated calories per serving.
-        </p>
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">Food & Calories</h2>
 
-        <form onSubmit={addFood} className="space-y-3">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Food name</span>
-            <input
-              value={foodName}
-              onChange={(e) => setFoodName(e.target.value)}
-              placeholder="e.g. Rice, eggs, banana"
-              className={inputStyle}
-            />
-          </label>
+          <p className="mt-1 text-sm text-gray-500">
+            Search food information and record what you eat. Calorie values are
+            estimates and may vary by serving size.
+          </p>
+        </div>
 
+        {/* Food search */}
+        <form onSubmit={searchFoods} className="space-y-3">
           <label className="block">
             <span className="mb-1 block text-sm font-medium">
-              Calories (kcal)
+              Search for food
             </span>
+
             <input
-              type="number"
-              min="0"
-              step="any"
-              value={foodCalories}
-              onChange={(e) => setFoodCalories(e.target.value)}
-              placeholder="Enter estimated calories"
+              type="text"
+              value={foodSearch}
+              onChange={(e) => setFoodSearch(e.target.value)}
+              placeholder="e.g. cooked rice, banana, egg"
               className={inputStyle}
             />
           </label>
 
-          {foodError && (
-            <p role="alert" className="text-sm text-red-600">
-              {foodError}
-            </p>
-          )}
-
-          <button className={buttonStyle} type="submit">
-            Add Food
+          <button
+            type="submit"
+            disabled={foodLoading}
+            className={`${buttonStyle} disabled:cursor-not-allowed disabled:opacity-60`}
+          >
+            {foodLoading ? "Searching..." : "Search Food"}
           </button>
         </form>
 
-        <div className="mt-5 space-y-2">
-          {foods.map((food) => (
-            <div
-              key={food.id}
-              className="flex items-center justify-between gap-3 border-b py-2"
-            >
-              <div>
-                <p className="font-medium">{food.name}</p>
-                <p className="text-sm text-gray-500">{food.calories} kcal</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => deleteFood(food.id)}
-                className="text-red-600"
-              >
-                Delete
-              </button>
-            </div>
-          ))}
+        {/* Error message */}
+        {foodError && (
+          <p role="alert" className="mt-3 text-sm text-red-600">
+            {foodError}
+          </p>
+        )}
 
-          {foods.length === 0 && (
-            <p className="text-sm text-gray-500">No food entries yet.</p>
-          )}
+        {/* Search results */}
+        {foodResults.length > 0 && (
+          <div className="mt-5 space-y-3">
+            <h3 className="font-semibold">Search Results</h3>
+
+            {foodResults.map((food) => {
+              const calories = getFoodCalories(food);
+
+              return (
+                <div
+                  key={food.fdcId}
+                  className="flex flex-col gap-3 rounded-xl border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-medium">{food.description}</p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      {calories === null
+                        ? "Calorie information unavailable"
+                        : `Estimated ${calories.toFixed(1)} kcal`}
+                    </p>
+
+                    {food.brandOwner && (
+                      <p className="text-xs text-gray-400">{food.brandOwner}</p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => addFood(food)}
+                    disabled={calories === null}
+                    className={`${buttonStyle} disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    Add Food
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Daily food log */}
+        <div className="mt-6">
+          <h3 className="font-semibold">Today's Food Log</h3>
+
+          <div className="mt-3 space-y-2">
+            {foods.map((food) => (
+              <div
+                key={food.id}
+                className="flex items-center justify-between gap-3 border-b py-3"
+              >
+                <div>
+                  <p className="font-medium">{food.name}</p>
+
+                  <p className="text-sm text-gray-500">
+                    {Number(food.calories).toFixed(1)} kcal
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => deleteFood(food.id)}
+                  className="text-sm text-red-600 hover:text-red-800"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+            {foods.length === 0 && (
+              <p className="text-sm text-gray-500">
+                No food entries yet. Search for a food to get started.
+              </p>
+            )}
+          </div>
         </div>
 
-        <p className="mt-4 font-semibold">Total logged: {totalCalories} kcal</p>
+        {/* Total */}
+        <div className="mt-5 rounded-xl bg-amber-50 p-4">
+          <p className="text-sm text-amber-800">Total food energy logged</p>
+
+          <p className="mt-1 text-2xl font-bold text-amber-950">
+            {totalCalories.toLocaleString(undefined, {
+              maximumFractionDigits: 1,
+            })}{" "}
+            kcal
+          </p>
+        </div>
       </section>
 
       {/* Water tracker */}
